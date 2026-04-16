@@ -68,20 +68,91 @@ router.put("/:id", authMiddleware, async (req, res) => {
 // ================= DELETE BLOG =================
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {
+    console.log("DELETE HIT");
+    console.log("USER:", req.user);
+
     const blog = await Blog.findById(req.params.id);
+
+    console.log("BLOG USER:", blog?.userId);
 
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
     }
 
     if (blog.userId.toString() !== req.user.userId) {
+      console.log("NOT AUTHORIZED");
       return res.status(403).json({ message: "Not authorized" });
     }
 
     await blog.deleteOne();
 
-    res.json({ message: "Blog deleted successfully" });
+    res.json({ message: "Deleted successfully" });
   } catch (err) {
+    console.log("DELETE ERROR:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+//AI GENERATED BLOG
+const axios = require("axios");
+
+router.post("/generate", authMiddleware, async (req, res) => {
+  const { topic } = req.body;
+
+  const fakeContent = `This is an AI-generated blog about ${topic}.
+
+${topic} is an interesting subject that involves multiple aspects...
+`;
+
+  res.json({ content: fakeContent });
+});
+
+// LIKE BLOG
+router.put("/:id/like", async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.id);
+
+    blog.likes += 1;
+
+    await blog.save();
+
+    res.json(blog);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// COMMENT BLOG
+router.post("/:id/comment", authMiddleware, async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.id);
+
+    blog.comments.push({
+      text: req.body.text,
+      userId: req.user.userId,
+    });
+
+    await blog.save();
+
+    res.json(blog);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// SEARCH BLOGS
+router.get("/search", async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    const blogs = await Blog.find({
+      title: { $regex: q, $options: "i" }, // 🔥 case-insensitive
+      isPublic: true,
+    });
+
+    res.json(blogs);
+  } catch (err) {
+    console.log("SEARCH ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });

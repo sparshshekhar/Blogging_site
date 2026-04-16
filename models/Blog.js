@@ -3,26 +3,40 @@ const mongoose = require("mongoose");
 const blogSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true
+    required: true,
   },
   content: {
     type: String,
-    required: true
+    required: true,
   },
   category: {
-    type: String
+    type: String,
   },
   isPublic: {
     type: Boolean,
-    default: true
+    default: true,
   },
   userId: {
-    type: String
+    type: String,
   },
+  likes: {
+    type: Number,
+    default: 0,
+  },
+  comments: [
+    {
+      text: String,
+      userId: String,
+      createdAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 module.exports = mongoose.model("Blog", blogSchema);
